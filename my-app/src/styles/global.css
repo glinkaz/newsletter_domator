@@ -1,0 +1,171 @@
+/* Info button in top right */
+.info-btn {
+  position:  absolute;
+  /* margin-top: 1.5rem;
+  margin-right: 1.5rem; */
+  top: 0px;
+  right: 0px;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid #7d5df3;
+  color: #7d5df3;
+  border-radius: 20px;
+  /* padding: 0.5rem 1.2rem; */
+  font-weight: 600;
+  box-shadow: 0 2px 8px #0001;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.info-btn:hover {
+  background: #f0f4ff;
+  color: #a8002c;
+}
+
+/* Info modal overlay */
+.info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Info modal box */
+.info-modal {
+  background: #fff;
+  border-radius: 18px;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  min-width: 320px;
+  max-width: 520px;
+  box-shadow: 0 4px 32px #0002;
+  position: relative;
+  text-align: center;
+}
+
+.info-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #a8002c;
+  cursor: pointer;
+}
+
+.info-modal-title {
+  color: #a8002c;
+  margin-bottom: 16px;
+}
+
+.info-modal-content {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+.info-modal-footer {
+  font-size: 0.95rem;
+  color: #888;
+}
+/* Decorative fixed yellow backgrounds for Home page */
+.yellow-bg-left {
+  position: fixed;
+  top: 0;
+  left: -10%;
+  width: 35%;
+  height: 20%;
+  background:  #ffe066 ;
+  border-radius: 200px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.yellow-bg-right {
+  position: fixed;
+  top: 20%;
+  right: -10%;
+  width: 50%;
+  height: 20%;
+  background: #ffe066;
+  border-radius: 200px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.yellow-bg-bottom {
+  position: fixed;
+  bottom: 0;
+  left: -10%;
+  width: 60%;
+  height: 20%;
+  background: #ffe066;
+  border-radius: 200px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.yellow-bg-irr {
+  position: fixed;
+  top: -170%;
+  left: -120%;
+  width: 250%;
+  height: 200%;
+  background: #ffe066;
+  border-radius: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+ .admin-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 500px;
+  margin: 30px auto 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.img {
+  max-height: '350px';
+  object-fit: 'contain';
+  background: '#fafafa';
+  border-radius: '12px'
+}
+/*
+.admin-form h2 {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.admin-form input,
+.admin-form textarea {
+  padding: 10px;
+  margin: 0 -10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.admin-form button {
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.admin-form button:hover {
+  background-color: #0056b3;
+} */
