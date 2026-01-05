@@ -1,0 +1,17 @@
+# Vendor & Dependencies
+node_modules
+venv
+__pycache__
+*.pyc
+.git
+.gitignore
+.env
+pgdata
+
+# Docker config files
+Dockerfile*
+docker-compose.yml
+
+# IDE files
+.vscode
+.idea

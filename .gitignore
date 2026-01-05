@@ -1,0 +1,18 @@
+# System files
+.DS_Store
+.idea/
+.vscode/
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Docker volumes and data (Avoid committing database files!)
+pgdata/
+
+# Environment variables (Sensitive data)
+.env
+
+node_modules
+public

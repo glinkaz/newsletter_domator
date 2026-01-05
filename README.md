@@ -26,17 +26,18 @@ A full-stack web application for managing and displaying products, built with **
 ## Project Structure
 
 ```
-my-app/
 ├── src/
 │   ├── app.py                # Flask backend
-│   ├── components/           # React components (ProductCard, ProductForm, ProductList, etc.)
-│   ├── pages/                # React pages (Home, Admin, Login)
-│   ├── data/                 # SQL and sample data
+│   ├── components/           # React components
+│   ├── pages/                # React pages
 │   ├── styles/               # CSS files
 │   └── assets/               # Images and static assets
-├── package.json              # Frontend dependencies and scripts
-├── README.md                 # Project documentation
-└── ...
+├── Dockerfile.backend        # Docker config for backend
+├── Dockerfile.frontend       # Docker config for frontend
+├── docker-compose.yml        # Orchestration
+├── package.json              # Frontend dependencies
+├── requirements.txt          # Backend dependencies
+└── README.md                 # Documentation
 ```
 
 ## Setup Instructions
@@ -49,9 +50,9 @@ my-app/
 
 ### 2. Backend
 
-- Install Python dependencies: `pip install flask flask-cors psycopg2 werkzeug`
-- Configure your database credentials in `src/app.py` (`DATABASE_CONFIG`).
-- Run the backend:  
+- Install Python dependencies: `pip install -r requirements.txt`
+- Configure your database credentials in `src/app.py` or `.env`.
+- Run the backend:
 	```bash
 	python src/app.py
 	```

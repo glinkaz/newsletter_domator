@@ -3,21 +3,25 @@ from flask import Flask, request, jsonify, send_file, g
 from flask_cors import CORS
 import psycopg2
 import io
+import os
 from flask import Flask, request, jsonify, g
 from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
 DATABASE_CONFIG = {
-    "host": "localhost",
-    "database": "products",
-    "user": "zuzannaglinka",
-    "password": "password"
+    # "host": os.environ.get("DB_HOST", "host.docker.internal"),
+    "host": os.environ.get("DB_HOST", "0.0.0.0"),
+    "database": os.environ.get("DB_NAME", "products"),
+    "user": os.environ.get("DB_USER", "zuzannaglinka"),
+    "password": os.environ.get("DB_PASSWORD", "password")
 }
 
 def get_db():
     """Otwiera nowe połączenie z bazą danych, jeśli jeszcze nie zostało otwarte w kontekście żądania."""
     if 'db_conn' not in g:
+        print(f"DEBUG: Connecting to DB with config: {DATABASE_CONFIG}", flush=True)
+        print(f"DEBUG: os.environ keys: {list(os.environ.keys())}", flush=True)
         g.db_conn = psycopg2.connect(**DATABASE_CONFIG)
     return g.db_conn
 
@@ -54,7 +58,7 @@ def get_products():
         return jsonify(result)
         
     except Exception as e:
-        print(f"Błąd podczas pobierania produktów: {e}")
+        print(f"Błąd podczas pobierania produktów: {e}", flush=True)
         return jsonify({"error": "Wewnętrzny błąd serwera DB"}), 500
         
     finally:
@@ -209,6 +213,8 @@ def update_product_price(product_id):
         print(f"Błąd podczas aktualizacji ceny: {e}")
         return jsonify({"error": "Wewnętrzny błąd serwera DB"}), 500
 
-
+# --------------------
+# Run server
+# --------------------
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

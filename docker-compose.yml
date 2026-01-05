@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5001:5001"
+    #     environment:
+    #     - DATABASE_CONFIG = 
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_NAME=products
+      - DB_USER=zuzannaglinka
+      - DB_PASSWORD=password
+    depends_on:
+      - db
+    working_dir: /app
+    volumes:
+      - ./src:/app/src
+      # - ./requirements.txt:/app/requirements.txt
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    working_dir: /app
+    # volumes:
+    # - ./my-app:/my-app
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: products
+      POSTGRES_USER: zuzannaglinka
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

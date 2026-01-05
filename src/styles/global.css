@@ -1,14 +1,19 @@
 /* Info button in top right */
 .info-btn {
-  position:  absolute;
+  position: absolute;
   /* margin-top: 1.5rem;
   margin-right: 1.5rem; */
   top: 0px;
   right: 0px;
   z-index: 10;
+  /* background: #fff; */
+  /* border: 1px solid #7d5df3; */
+  /* color: #7d5df3; */
+  /* background: linear-gradient(165deg, #c7385e 0%, #c7385e 60%, #fff 100%);
+  color: #fff; */
+  border: 2px solid #a8002c;
   background: #fff;
-  border: 1px solid #7d5df3;
-  color: #7d5df3;
+  color: #a8002c;
   border-radius: 20px;
   /* padding: 0.5rem 1.2rem; */
   font-weight: 600;
@@ -16,6 +21,7 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .info-btn:hover {
   background: #f0f4ff;
   color: #a8002c;
@@ -28,7 +34,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -72,6 +78,7 @@
   font-size: 0.95rem;
   color: #888;
 }
+
 /* Decorative fixed yellow backgrounds for Home page */
 .yellow-bg-left {
   position: fixed;
@@ -79,7 +86,7 @@
   left: -10%;
   width: 35%;
   height: 20%;
-  background:  #ffe066 ;
+  background: #ffe066;
   border-radius: 200px;
   z-index: 0;
   pointer-events: none;
@@ -120,11 +127,12 @@
   z-index: 0;
   pointer-events: none;
 }
- .admin-form {
+
+.admin-form {
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 500px;
   margin: 30px auto 30px;
   display: flex;
@@ -138,6 +146,7 @@
   background: '#fafafa';
   border-radius: '12px'
 }
+
 /*
 .admin-form h2 {
   margin-bottom: 10px;
