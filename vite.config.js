@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     allowedHosts: [
       'jola197.mikrus.xyz'
-    ]
+    ],
+    host: true,
+    strictPort: true
   }
 })
