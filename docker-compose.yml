@@ -5,8 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     ports:
-      # - "5001:5001"
-      - "20197:5173"
+      - "5001:5001"
     #     environment:
     #     - DATABASE_CONFIG = 
     environment:
@@ -28,7 +27,7 @@ services:
       dockerfile: Dockerfile.frontend
     ports:
       # - "5173:5173"
-      - "10197:5173"
+      - "20197:5173"
     depends_on:
       - backend
     working_dir: /app
