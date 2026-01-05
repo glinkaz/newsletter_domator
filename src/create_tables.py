@@ -2,6 +2,7 @@ import os
 import io
 import psycopg2
 from werkzeug.security import generate_password_hash
+import getpass
 
 DATABASE_CONFIG = {
     "host": os.environ.get("DB_HOST", "0.0.0.0"),
