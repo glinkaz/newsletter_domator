@@ -5,10 +5,20 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    // allowedHosts: [
+    //   'jola197.mikrus.xyz'
+    // ],
+    // host: true,
+
+    host: '0.0.0.0', // to już pewnie masz, żeby Docker działał
     allowedHosts: [
-      'jola197.mikrus.xyz'
+      'domatormyszyniec.pl',
+      'www.domatormyszyniec.pl',
+      'jola197.mikrus.xyz',
+      'localhost:5173',
+      'localhost:20197',
+      'localhost:30197'
     ],
-    host: true,
     strictPort: true
   }
 })
