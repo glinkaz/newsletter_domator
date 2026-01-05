@@ -34,7 +34,7 @@ def init_db():
                 price NUMERIC(10, 2) NOT NULL,
                 description TEXT,
                 category VARCHAR(50),
-                image TEXT,
+                image BYTEA,
                 ceneo_url VARCHAR(500)
             );
         """)

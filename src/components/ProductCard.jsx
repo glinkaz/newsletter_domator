@@ -43,7 +43,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
         )}
         <div className="d-flex align-items-center justify-content-center bg-light" style={{ width: '100%', height: '220px', borderRadius: '12px', overflow: 'hidden' }}>
           <img
-            src={`http://localhost:5001/product_image/${product.id}`}
+            src={`${API_BASE_URL}/product_image/${product.id}`}
             alt={product.name}
             className="card-img-top"
             style={{ maxWidth: '95%', maxHeight: '200px', objectFit: 'contain', display: 'block', margin: '0 auto' }}
@@ -127,7 +127,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
           <div className="modal-dialog modal-lg modal-dialog-centered" onClick={e => e.stopPropagation()}>
             <div className="modal-content p-4 text-center position-relative">
               <img
-                src={`http://localhost:5001/product_image/${product.id}`}
+                src={`${API_BASE_URL}/product_image/${product.id}`}
                 alt={product.name}
                 className="img-fluid rounded mb-3"
                 style={{ maxHeight: '400px', objectFit: 'contain' }}
