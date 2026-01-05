@@ -7,11 +7,15 @@ import os
 from flask import Flask, request, jsonify, g
 from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173", "http://jola197.mikrus.xyz:20197", "http://jola197.mikrus.xyz:30197", 
+CORS(app, origins=["http://localhost:5173", 
+"http://jola197.mikrus.xyz:20197", 
+"http://jola197.mikrus.xyz:30197", 
 "http://domatormyszniec.pl",
     "https://domatormyszniec.pl",
     "http://www.domatormyszniec.pl",
-    "https://www.domatormyszniec.pl"], supports_credentials=True)
+    "https://www.domatormyszniec.pl",
+    "domatormyszyniec.pl",
+    "www.domatormyszyniec.pl"], supports_credentials=True)
 
 DATABASE_CONFIG = {
     # "host": os.environ.get("DB_HOST", "host.docker.internal"),
