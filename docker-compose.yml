@@ -27,7 +27,8 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     ports:
-      - "5173:5173"
+      # - "5173:5173"
+      - "20197:5173"
     depends_on:
       - backend
     working_dir: /app
