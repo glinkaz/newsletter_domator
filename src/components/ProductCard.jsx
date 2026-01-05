@@ -1,5 +1,6 @@
-import  { useState } from 'react';
-import '../styles/global.css'; 
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from "../config";
+import '../styles/global.css';
 
 const ProductCard = ({ product, onDelete, showDeleteButton }) => {
   const [showModal, setShowModal] = useState(false);
@@ -51,7 +52,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
         <div className="card-body d-flex flex-column" style={{ width: '100%', overflow: 'hidden', paddingBottom: '1.5rem' }}>
           <h3 className="card-title" style={{ fontSize: '1.2rem', fontWeight: 700 }}>{product.name}</h3>
           {showDeleteButton ? (
-            <div style={{  alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
+            <div style={{ alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
               {editingPrice ? (
                 <>
                   <input
@@ -71,7 +72,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
                       setSaving(true);
                       setError(null);
                       try {
-                        const res = await fetch(`http://localhost:5001/products/${product.id}/price`, {
+                        const res = await fetch(`${API_BASE_URL}/products/${product.id}/price`, {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ price })
@@ -93,10 +94,10 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
                 </>
               ) : (
                 <>
-                  <span className="card-text " style={{color: "#c7385e", fontWeight: 900, margin: '10px'}}>{price} zł</span>
+                  <span className="card-text " style={{ color: "#c7385e", fontWeight: 900, margin: '10px' }}>{price} zł</span>
                   <button
                     className="btn btn-outline-primary btn-sm"
-                    margin = '10px'
+                    margin='10px'
                     onClick={e => { e.stopPropagation(); setEditingPrice(true); }}
                   >Edytuj</button>
                 </>
@@ -133,7 +134,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
               />
               <h2>{product.name}</h2>
               <p className="fs-5 mb-3">{product.description}</p>
-              <p className=" fs-4" style={{color: "#c7385e", fontWeight: 900}}>{price} zł</p>
+              <p className=" fs-4" style={{ color: "#c7385e", fontWeight: 900 }}>{price} zł</p>
               <button
                 type="button"
                 className="btn-close position-absolute"

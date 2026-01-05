@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import '../App.css';
 import '../styles/global.css';
 import ProductList from '../components/ProductList';
+import { API_BASE_URL } from "../config";
 if (typeof document !== 'undefined' && !document.getElementById('oswald-font')) {
   const fontLink = document.createElement('link');
   fontLink.href = 'https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap';
@@ -28,7 +29,7 @@ const Home = () => {
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5001/products")
+    fetch(`${API_BASE_URL}/products`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched products:", data);

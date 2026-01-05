@@ -31,8 +31,10 @@ services:
     depends_on:
       - backend
     working_dir: /app
-    # volumes:
-    # - ./my-app:/my-app
+    environment:
+      - VITE_API_BASE_URL=http://jola197.mikrus.xyz:5001
+      # volumes:
+      # - ./my-app:/my-app
   db:
     image: postgres:16
     environment:
