@@ -15,9 +15,9 @@ export default defineConfig({
       'domatormyszyniec.pl',
       'www.domatormyszyniec.pl',
       'jola197.mikrus.xyz',
-      'localhost:5173',
-      'localhost:20197',
-      'localhost:30197'
+      'localhost',
+      // 'localhost:20197',
+      // 'localhost:30197'
     ],
     strictPort: true
   }

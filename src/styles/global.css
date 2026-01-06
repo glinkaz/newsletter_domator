@@ -43,14 +43,18 @@
 
 @media (max-width: 768px) {
   .info-btn {
-    position: static;
-    display: block;
-    margin: 60px auto 10px auto;
-    width: fit-content;
+    /* Keep it absolute for "top right corner" feel */
+    top: 80px;
+    /* Clear the fixed header bar */
+    right: 15px;
+    padding: 0.4rem 0.8rem;
+    /* Slightly smaller on mobile */
+    font-size: 0.9rem;
   }
 
   .main-title {
-    margin-top: 10px;
+    margin-top: 5rem;
+    /* Push title down so it sits BELOW the button level */
     font-size: clamp(3rem, 15vw, 5rem);
     width: 100%;
   }
