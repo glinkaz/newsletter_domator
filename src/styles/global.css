@@ -48,7 +48,7 @@
   }
 
   .main-title {
-    margin-top: 2rem;
+    margin-top: 4rem;
     font-size: clamp(3rem, 13vw, 5rem);
     width: 100%;
     font-weight: 700;
@@ -262,4 +262,12 @@
   background: #fff;
   color: #333;
   font-weight: normal;
+}
+
+.main-content {
+  position: relative;
+  min-height: 100vh;
+  overflow: auto;
+  padding-top: 42px;
+  /* Tight padding to clear header */
 }
