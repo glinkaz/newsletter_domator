@@ -116,23 +116,10 @@ const Home = () => {
         <div className="yellow-bg-left" />
         <div className="yellow-bg-right" />
         <div className="yellow-bg-bottom" />
-        <h1
-          style={{
-            fontFamily: 'Oswald, Arial Black, Arial, sans-serif',
-            color: '#a8002c',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            fontSize: '6rem',
-            fontWeight: 700,
-            marginTop: '2rem',
-            position: 'relative',
-            zIndex: 1,
-            textShadow: '1px 2px 8px #fff6, 0 2px 0 #fff',
-          }}
-        >
+        <h1 className="main-title">
           Domator
         </h1>
-        <nav style={{ marginBottom: "2rem", display: "flex", gap: "1rem", justifyContent: "center", position: 'relative', zIndex: 1 }}>
+        <nav className="category-nav">
           {DEPARTMENTS.map((dept) => (
             <button
               key={dept}
@@ -144,7 +131,8 @@ const Home = () => {
                 background: selectedDept === dept ? "#f3e0e4ff" : "#fff",
                 color: selectedDept === dept ? "#a8002c" : "#333",
                 fontWeight: selectedDept === dept ? "bold" : "normal",
-                cursor: "pointer"
+                cursor: "pointer",
+                whiteSpace: "nowrap"
               }}
             >
               {dept}
