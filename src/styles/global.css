@@ -42,6 +42,7 @@
   position: relative;
   z-index: 1;
   flex-wrap: wrap;
+  padding: 0.5rem;
 }
 
 .top-info-bar {
@@ -63,7 +64,7 @@
 }
 
 .category-btn {
-  padding: 0.5rem;
+  padding: 1rem;
   border-radius: 20px;
   cursor: pointer;
   white-space: nowrap;
@@ -89,7 +90,7 @@
   position: relative;
   min-height: 100vh;
   overflow: auto;
-  padding-top: 50px;
+  padding-top: 1rem;
   /* Base padding for desktop */
 }
 
@@ -181,7 +182,7 @@
 .yellow-bg-right {
   position: fixed;
   top: 20%;
-  right: -10%;
+  right: -15%;
   width: 50%;
   height: 20%;
   background: #ffe066;
