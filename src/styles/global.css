@@ -41,14 +41,14 @@
 
 @media (max-width: 768px) {
   .info-btn {
-    top: 1rem;
+    top: 1.5rem;
     right: 15px;
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
   }
 
   .main-title {
-    margin-top: 0.5rem;
+    /* margin-top: 0.5rem; */
     font-size: clamp(3rem, 13vw, 5rem);
     width: 100%;
     font-weight: 700;
@@ -144,7 +144,7 @@
 .yellow-bg-left {
   position: fixed;
   top: 0;
-  left: -10%;
+  left: -15%;
   width: 35%;
   height: 20%;
   background: #ffe066;
@@ -168,7 +168,7 @@
 .yellow-bg-bottom {
   position: fixed;
   bottom: 0;
-  left: -10%;
+  left: -15%;
   width: 60%;
   height: 20%;
   background: #ffe066;
@@ -235,7 +235,8 @@
 }
 
 .category-btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem;
+  /*1.5rem*/
   border-radius: 20px;
   cursor: pointer;
   white-space: nowrap;
@@ -245,7 +246,7 @@
 
 @media (max-width: 768px) {
   .category-btn {
-    padding: 0.4rem 1rem;
+    /* padding: 0.4rem 1rem; */
     font-size: 0.85rem;
   }
 
@@ -269,6 +270,6 @@
   position: relative;
   min-height: 100vh;
   overflow: auto;
-  padding-top: 42px;
+  padding-top: 2rem;
   /* Tight padding to clear header */
 }
