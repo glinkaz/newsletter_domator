@@ -1,16 +1,14 @@
-/* Info button in top right */
 .info-btn {
   position: absolute;
-  top: 50px;
-  /* Lowered from 0px to avoid overlap */
   right: 20px;
-  z-index: 10;
+  z-index: 50;
   border: 2px solid #a8002c;
   background: #fff;
   color: #a8002c;
   border-radius: 20px;
   padding: 0.5rem 1.2rem;
   font-weight: 600;
+  font-size: 1rem;
   box-shadow: 0 2px 8px #0001;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
@@ -23,7 +21,7 @@
   letter-spacing: 0.08em;
   font-weight: 700;
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
   position: relative;
   z-index: 1;
   text-shadow: 1px 2px 8px #fff6, 0 2px 0 #fff;
@@ -43,31 +41,46 @@
 
 @media (max-width: 768px) {
   .info-btn {
-    /* Keep it absolute for "top right corner" feel */
-    top: 80px;
-    /* Clear the fixed header bar */
+    top: 10px;
     right: 15px;
     padding: 0.4rem 0.8rem;
-    /* Slightly smaller on mobile */
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .main-title {
-    margin-top: 5rem;
-    /* Push title down so it sits BELOW the button level */
-    font-size: clamp(3rem, 15vw, 5rem);
+    margin-top: 2rem;
+    font-size: clamp(3rem, 13vw, 5rem);
     width: 100%;
+    font-weight: 700;
   }
+}
 
-  .category-nav {
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 15px;
-    padding-left: 15px;
-    padding-right: 15px;
-    -webkit-overflow-scrolling: touch;
-  }
+.top-info-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: linear-gradient(165deg, #c7385e 0%, #c7385e 60%, #fff 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px #0001;
+  z-index: 100;
+}
+
+.main-content {
+  position: relative;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+.category-nav {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .info-btn:hover {
@@ -189,40 +202,64 @@
 }
 
 .img {
-  max-height: '350px';
-  object-fit: 'contain';
-  background: '#fafafa';
-  border-radius: '12px'
+  max-height: 350px;
+  object-fit: contain;
+  background: #fafafa;
+  border-radius: 12px;
 }
 
-/*
-.admin-form h2 {
-  margin-bottom: 10px;
-  font-size: 1.5rem;
-  color: #333;
-}
 
-.admin-form input,
-.admin-form textarea {
-  padding: 10px;
-  margin: 0 -10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
+.top-info-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  background: linear-gradient(165deg, #c7385e 0%, #c7385e 60%, #fff 100%);
+  color: #fff;
+  text-align: center;
+  padding: 0.3rem 0;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px #0001;
+  z-index: 100;
+  margin: 0;
 }
 
-.admin-form button {
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
+@media (max-width: 768px) {
+  .top-info-bar {
+    font-size: 0.9rem;
+    padding: 0.2rem 0;
+  }
+}
+
+.category-btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
+  white-space: nowrap;
+  font-size: 1rem;
+  transition: all 0.2s;
 }
 
-.admin-form button:hover {
-  background-color: #0056b3;
-} */
+@media (max-width: 768px) {
+  .category-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+.category-btn.active {
+  border: 2px solid #a8002c;
+  background: #f3e0e4ff;
+  color: #a8002c;
+  font-weight: bold;
+}
+
+.category-btn.inactive {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  font-weight: normal;
+}

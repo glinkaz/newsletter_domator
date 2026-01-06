@@ -6,8 +6,7 @@ services:
       dockerfile: Dockerfile.backend
     ports:
       - "30197:5001"
-    #     environment:
-    #     - DATABASE_CONFIG = 
+      # - "5001:5001"
     environment:
       - DB_HOST=host.docker.internal
       - DB_NAME=products
@@ -32,10 +31,8 @@ services:
       - backend
     working_dir: /app
     environment:
-      # - VITE_API_BASE_URL=http://jola197.mikrus.xyz:30197
       - VITE_API_BASE_URL=https://api.domatormyszyniec.pl
-      # volumes:
-      # - ./my-app:/my-app
+
   db:
     image: postgres:16
     environment:

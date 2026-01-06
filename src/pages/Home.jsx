@@ -49,27 +49,10 @@ const Home = () => {
     <>
       <div
         className="top-info-bar"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          background: 'linear-gradient(165deg, #c7385e 0%, #c7385e 60%, #fff 100%)',
-          color: '#fff',
-          textAlign: 'center',
-          padding: '0.3rem 0',
-          fontWeight: 700,
-          fontSize: '1.15rem',
-          letterSpacing: '0.5px',
-          boxShadow: '0 2px 8px #0001',
-          zIndex: 100,
-          margin: 0
-        }}
       >
         Jeśli znajdziesz taniej - negocjuj cenę
       </div>
-      <div style={{ position: 'relative', minHeight: '100vh', overflow: 'auto', marginTop: '-1.5rem' }}>
+      <div className="main-content" >
         <button
           className="info-btn"
           onClick={() => setShowInfo(true)}
@@ -124,23 +107,14 @@ const Home = () => {
             <button
               key={dept}
               onClick={() => setSelectedDept(dept)}
-              style={{
-                padding: "0.5rem 1.5rem",
-                borderRadius: "20px",
-                border: selectedDept === dept ? "2px solid #a8002c" : "1px solid #ccc",
-                background: selectedDept === dept ? "#f3e0e4ff" : "#fff",
-                color: selectedDept === dept ? "#a8002c" : "#333",
-                fontWeight: selectedDept === dept ? "bold" : "normal",
-                cursor: "pointer",
-                whiteSpace: "nowrap"
-              }}
+              className={`category-btn ${selectedDept === dept ? 'active' : 'inactive'}`}
             >
               {dept}
             </button>
           ))}
         </nav>
         <ProductList products={filteredProducts} showDeleteButton={false} />
-      </div>
+      </div >
     </>
   );
 };
