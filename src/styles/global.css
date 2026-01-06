@@ -42,7 +42,6 @@
 @media (max-width: 768px) {
   .info-btn {
     top: 10px;
-    bottom: 10px;
     right: 15px;
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
