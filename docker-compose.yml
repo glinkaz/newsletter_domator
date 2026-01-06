@@ -33,7 +33,7 @@ services:
     working_dir: /app
     environment:
       # - VITE_API_BASE_URL=http://jola197.mikrus.xyz:30197
-      VITE_API_BASE_URL=https://api.domatormyszyniec.pl
+      - VITE_API_BASE_URL=https://api.domatormyszyniec.pl
       # volumes:
       # - ./my-app:/my-app
   db:
