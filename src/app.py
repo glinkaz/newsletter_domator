@@ -13,7 +13,7 @@ CORS(app, origins=["http://localhost:5173",
 "http://domatormyszyniec.pl",
     "https://domatormyszyniec.pl",
     "http://www.domatormyszyniec.pl",
-    "https://www.domatormyszyniec.pl"x], supports_credentials=True)
+    "https://www.domatormyszyniec.pl"], supports_credentials=True)
 
 DATABASE_CONFIG = {
     # "host": os.environ.get("DB_HOST", "host.docker.internal"),
