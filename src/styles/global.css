@@ -266,10 +266,9 @@
   font-weight: normal;
 }
 
-.main-content {
+/* .main-content {
   position: relative;
   min-height: 100vh;
   overflow: auto;
   padding-top: 2rem;
-  /* Tight padding to clear header */
-}
+}*/
