@@ -1,3 +1,4 @@
+/* Info button in top right */
 .info-btn {
   position: absolute;
   right: 20px;
@@ -14,6 +15,11 @@
   transition: background 0.2s, color 0.2s;
 }
 
+.info-btn:hover {
+  background: #f0f4ff;
+  color: #a8002c;
+}
+
 .main-title {
   font-family: 'Oswald', 'Arial Black', Arial, sans-serif;
   color: #a8002c;
@@ -25,7 +31,6 @@
   position: relative;
   z-index: 1;
   text-shadow: 1px 2px 8px #fff6, 0 2px 0 #fff;
-  font-size: 6rem;
   font-size: clamp(3rem, 12vw, 6rem);
 }
 
@@ -39,22 +44,6 @@
   flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
-  .info-btn {
-    top: 1.5rem;
-    right: 15px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-  }
-
-  .main-title {
-    /* margin-top: 0.5rem; */
-    font-size: clamp(3rem, 13vw, 5rem);
-    width: 100%;
-    font-weight: 700;
-  }
-}
-
 .top-info-bar {
   position: fixed;
   top: 0;
@@ -64,28 +53,44 @@
   background: linear-gradient(165deg, #c7385e 0%, #c7385e 60%, #fff 100%);
   color: #fff;
   text-align: center;
+  padding: 0.3rem 0;
   font-weight: 700;
   font-size: 1.15rem;
   letter-spacing: 0.5px;
   box-shadow: 0 2px 8px #0001;
   z-index: 100;
+  margin: 0;
+}
+
+.category-btn {
+  padding: 0.5rem;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.category-btn.active {
+  border: 2px solid #a8002c;
+  background: #f3e0e4ff;
+  color: #a8002c;
+  font-weight: bold;
+}
+
+.category-btn.inactive {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  font-weight: normal;
 }
 
 .main-content {
   position: relative;
   min-height: 100vh;
   overflow: auto;
-}
-
-.category-nav {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.info-btn:hover {
-  background: #f0f4ff;
-  color: #a8002c;
+  padding-top: 50px;
+  /* Base padding for desktop */
 }
 
 /* Info modal overlay */
@@ -140,6 +145,26 @@
   color: #888;
 }
 
+/* Admin Form */
+.admin-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 500px;
+  margin: 30px auto 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.img {
+  max-height: 350px;
+  object-fit: contain;
+  background: #fafafa;
+  border-radius: 12px;
+}
+
 /* Decorative fixed yellow backgrounds for Home page */
 .yellow-bg-left {
   position: fixed;
@@ -189,96 +214,42 @@
   pointer-events: none;
 }
 
-.admin-form {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 500px;
-  margin: 30px auto 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.img {
-  max-height: 350px;
-  object-fit: contain;
-  background: #fafafa;
-  border-radius: 12px;
-}
-
-
-.top-info-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  background: linear-gradient(165deg, #c7385e 0%, #c7385e 60%, #fff 100%);
-  color: #fff;
-  text-align: center;
-  padding: 0.3rem 0;
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px #0001;
-  z-index: 100;
-  margin: 0;
-}
-
+/* Mobile Responsive Styles - Consolidated */
 @media (max-width: 768px) {
+  .info-btn {
+    top: 1.5rem;
+    right: 15px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .main-title {
+    width: 100%;
+    /* Keep font size responsive via clamp in base rule, or override here if needed */
+  }
+
   .top-info-bar {
     font-size: 0.9rem;
     padding: 0.2rem 0;
   }
-}
 
-.category-btn {
-  padding: 0.5rem;
-  /*1.5rem*/
-  border-radius: 20px;
-  cursor: pointer;
-  white-space: nowrap;
-  font-size: 1rem;
-  transition: all 0.2s;
-}
-
-@media (max-width: 768px) {
   .category-btn {
     padding: 0.4rem 1rem;
     font-size: 0.85rem;
   }
 
-  .main-content {
-    position: relative;
-    min-height: 100vh;
-    overflow: auto;
-    padding-top: 2rem;
-    /* Tight padding to clear header */
+  .category-nav {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    -webkit-overflow-scrolling: touch;
   }
 
+  .main-content {
+    padding-top: 2.2rem;
+    /* Mobile specific padding */
+  }
 }
-
-.category-btn.active {
-  border: 2px solid #a8002c;
-  background: #f3e0e4ff;
-  color: #a8002c;
-  font-weight: bold;
-}
-
-.category-btn.inactive {
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #333;
-  font-weight: normal;
-}
-
-/* .main-content {
-  position: relative;
-  min-height: 100vh;
-  overflow: auto;
-  padding-top: 1rem;
-}
-
-*/
