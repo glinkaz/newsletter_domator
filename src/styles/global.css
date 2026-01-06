@@ -250,6 +250,14 @@
     font-size: 0.85rem;
   }
 
+  .main-content {
+    position: relative;
+    min-height: 100vh;
+    overflow: auto;
+    padding-top: 2rem;
+    /* Tight padding to clear header */
+  }
+
 }
 
 .category-btn.active {
@@ -266,10 +274,11 @@
   font-weight: normal;
 }
 
-.main-content {
+/* .main-content {
   position: relative;
   min-height: 100vh;
   overflow: auto;
   padding-top: 1rem;
-  /* Tight padding to clear header */
 }
+
+*/
