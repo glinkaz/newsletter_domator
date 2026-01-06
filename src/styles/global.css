@@ -22,13 +22,13 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
+  text-align: center;
   margin-top: 2rem;
   position: relative;
   z-index: 1;
   text-shadow: 1px 2px 8px #fff6, 0 2px 0 #fff;
   font-size: 6rem;
   font-size: clamp(3rem, 12vw, 6rem);
-  /* Responsive font size */
 }
 
 .category-nav {
@@ -42,6 +42,19 @@
 }
 
 @media (max-width: 768px) {
+  .info-btn {
+    position: static;
+    display: block;
+    margin: 60px auto 10px auto;
+    width: fit-content;
+  }
+
+  .main-title {
+    margin-top: 10px;
+    font-size: clamp(3rem, 15vw, 5rem);
+    width: 100%;
+  }
+
   .category-nav {
     justify-content: flex-start;
     flex-wrap: nowrap;
