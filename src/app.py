@@ -48,7 +48,7 @@ def get_products():
     cur = conn.cursor()
     
     try:
-        cur.execute("SELECT id, name, price, description, category, ceneo_url FROM products;")
+        cur.execute("SELECT id, name, price, description, category, ceneo_url, content_type FROM products;")
         products = cur.fetchall()
         result = [
             {
@@ -57,7 +57,8 @@ def get_products():
                 "price": float(p[2]),
                 "description": p[3],
                 "category": p[4],
-                "ceneo_url": p[5]
+                "ceneo_url": p[5],
+                "content_type": p[6] or 'image/jpeg'
             }
             for p in products
         ]
@@ -79,17 +80,37 @@ def add_product():
     price = request.form.get('price')
     description = request.form.get('description')
     category = request.form.get('category')
-    photo_file = request.files.get('image')
-    image = photo_file.read() if photo_file else None
     ceneo_url = request.form.get('ceneo_url')
+    
+    # Obsługa wielu zdjęć
+    images = request.files.getlist('images')
+    
+    # Pierwsze zdjęcie jako okładka
+    cover_image = None
+    cover_mimetype = 'image/jpeg'
+    
+    if images:
+        cover_image = images[0].read()
+        cover_mimetype = images[0].mimetype or 'image/jpeg'
+        images[0].seek(0) # Reset pointer
 
     try:
         cur.execute(
-            "INSERT INTO products (name, price, description, category, image, ceneo_url) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-            (name, price, description, category, image, ceneo_url)
+            "INSERT INTO products (name, price, description, category, image, content_type, ceneo_url) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+            (name, price, description, category, cover_image, cover_mimetype, ceneo_url)
         )
         product_id = cur.fetchone()[0]
-        conn.commit() # Zatwierdzamy zmiany
+        
+        # Zapisz wszystkie pliki do tabeli product_images z typem zawartości
+        for img in images:
+            img_data = img.read()
+            mimetype = img.mimetype or 'image/jpeg' # Default to jpeg
+            cur.execute(
+                "INSERT INTO product_images (product_id, image, content_type) VALUES (%s, %s, %s)",
+                (product_id, img_data, mimetype)
+            )
+            
+        conn.commit()
 
         return jsonify({
             'id': product_id,
@@ -97,7 +118,8 @@ def add_product():
             'price': price,
             'description': description,
             'category': category,
-            'ceneo_url': ceneo_url
+            'ceneo_url': ceneo_url,
+            'content_type': cover_mimetype
         }), 201
         
     except Exception as e:
@@ -114,17 +136,51 @@ def get_product_image(product_id):
     cur = conn.cursor()
     
     try:
-        cur.execute("SELECT image FROM products WHERE id = %s;", (product_id,))
+        cur.execute("SELECT image, content_type FROM products WHERE id = %s;", (product_id,))
         row = cur.fetchone()
         
         if row and row[0]:
-            # Zwracamy obrazek
-            return send_file(io.BytesIO(row[0]), mimetype='image/jpeg')
+            content_type = row[1] or 'image/jpeg'
+            return send_file(io.BytesIO(row[0]), mimetype=content_type)
         else:
             return jsonify({'error': 'Image not found'}), 404
     except Exception as e:
         print(f"Błąd podczas pobierania obrazka: {e}")
         return jsonify({"error": "Wewnętrzny błąd serwera DB"}), 500
+    finally:
+        cur.close()
+
+@app.route('/product_images/<int:product_id>', methods=['GET'])
+def get_product_gallery_ids(product_id):
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, content_type FROM product_images WHERE product_id = %s ORDER BY id ASC;", (product_id,))
+        rows = cur.fetchall()
+        # Return list of objects {id, content_type}
+        gallery = [{"id": row[0], "content_type": row[1]} for row in rows]
+        return jsonify(gallery)
+    except Exception as e:
+        print(f"Błąd podczas pobierania galerii: {e}")
+        return jsonify({"error": "DB Error"}), 500
+    finally:
+        cur.close()
+
+@app.route('/images/<int:image_id>', methods=['GET'])
+def get_gallery_image(image_id):
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT image, content_type FROM product_images WHERE id = %s;", (image_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            content_type = row[1] or 'image/jpeg'
+            return send_file(io.BytesIO(row[0]), mimetype=content_type)
+        else:
+            return jsonify({'error': 'Image not found'}), 404
+    except Exception as e:
+        print(f"Błąd pobierania zdjęcia z galerii: {e}")
+        return jsonify({"error": "DB Error"}), 500
     finally:
         cur.close()
 

@@ -10,14 +10,14 @@ const ProductForm = ({ onAdd }) => {
     category: '',
     ceneo_url: ''
   });
-  const [photoFile, setPhotoFile] = useState(null);
+  const [photoFiles, setPhotoFiles] = useState([]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = e => {
-    setPhotoFile(e.target.files[0]);
+    setPhotoFiles(Array.from(e.target.files));
   };
 
   const handleSubmit = e => {
@@ -25,13 +25,13 @@ const ProductForm = ({ onAdd }) => {
     if (!form.name || !form.price) return alert('Name and price are required');
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-    if (photoFile) formData.append('image', photoFile);
+    photoFiles.forEach(file => formData.append('images', file));
     for (let pair of formData.entries()) {
       console.log(pair[0] + ':', pair[1]);
     }
     onAdd(formData);
     setForm({ name: '', price: '', description: '', category: '', ceneo_url: '' });
-    setPhotoFile(null);
+    setPhotoFiles([]);
     e.target.reset();
   };
 
@@ -68,8 +68,9 @@ const ProductForm = ({ onAdd }) => {
       <input
         className="form-control mb-4"
         type="file"
-        name="image"
-        accept="image/*"
+        name="images"
+        accept="image/*,video/*"
+        multiple
         onChange={handleFileChange}
       />
       <button type="submit" className="btn btn-primary w-100">Add Product</button>
