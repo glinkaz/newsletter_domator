@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import '../styles/global.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 
 const ProductForm = ({ onAdd }) => {
@@ -51,7 +53,12 @@ const ProductForm = ({ onAdd }) => {
       <h3 className="mb-4">Dodaj Produkt</h3>
       <input className="form-control mb-3" name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
       <input className="form-control mb-3" name="price" placeholder="Price" value={form.price} onChange={handleChange} required />
-      <textarea className="form-control mb-3" name="description" placeholder="Description" value={form.description} onChange={handleChange} />
+      <ReactQuill
+        theme="snow"
+        value={form.description}
+        onChange={value => setForm({ ...form, description: value })}
+        style={{ marginBottom: '20px', backgroundColor: 'white' }}
+      />
       <input className="form-control mb-3" name="ceneo_url" placeholder="Ceneo link (opcjonalnie)" value={form.ceneo_url} onChange={handleChange} />
       <select
         className="form-select mb-4"

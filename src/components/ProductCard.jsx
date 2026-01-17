@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from "../config";
 import '../styles/global.css';
+import DOMPurify from 'dompurify';
 
 const ProductCard = ({ product, onDelete, showDeleteButton }) => {
   const [showModal, setShowModal] = useState(false);
@@ -120,9 +121,13 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
             <p className="card-text" style={{ margin: '0.5rem 0', color: "#c7385e", fontWeight: 900 }}>{price} zł</p>
           )}
           <p className="card-text" style={{ fontSize: '0.98rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {product.description && product.description.length > 80
-              ? product.description.slice(0, 80) + '...'
-              : product.description}
+            {(() => {
+              if (!product.description) return '';
+              const tmp = document.createElement("DIV");
+              tmp.innerHTML = product.description;
+              const text = tmp.textContent || tmp.innerText || "";
+              return text.length > 80 ? text.slice(0, 80) + '...' : text;
+            })()}
           </p>
           {showDeleteButton && onDelete && (
             <button
@@ -148,8 +153,13 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
 
               <ImageGallery product={product} />
 
+
               <h2 className="mt-4">{product.name}</h2>
-              <p className="fs-5 mb-3">{product.description}</p>
+              <div
+                className="fs-5 mb-3 text-start"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
+                style={{ wordBreak: 'break-word' }}
+              />
               <p className=" fs-4" style={{ color: "#c7385e", fontWeight: 900 }}>{price} zł</p>
             </div>
           </div>
