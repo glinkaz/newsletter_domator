@@ -3,6 +3,19 @@ import { API_BASE_URL } from "../config";
 import '../styles/global.css';
 import DOMPurify from 'dompurify';
 
+const formatPrice = (priceVal) => {
+  if (!priceVal) return null;
+  // Check if it's a valid number string
+  if (!isNaN(parseFloat(priceVal)) && isFinite(priceVal)) {
+    const num = parseFloat(priceVal);
+    // If integer, no decimals. If float, 2 decimals.
+    const formatted = num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
+    return `${formatted} zł`;
+  }
+  // Otherwise return text as is
+  return priceVal;
+};
+
 const ProductCard = ({ product, onDelete, showDeleteButton }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingPrice, setEditingPrice] = useState(false);
@@ -108,7 +121,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
                 <>
                   {price ? (
                     <span className="card-text " style={{ color: "#c7385e", fontWeight: 900, margin: '10px' }}>
-                      {(!isNaN(parseFloat(price)) && isFinite(price)) ? `${price} zł` : price}
+                      {formatPrice(price)}
                     </span>
                   ) : (
                     <span className="text-muted" style={{ margin: '10px', fontStyle: 'italic' }}>Brak ceny</span>
@@ -125,7 +138,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
           ) : (
             price ? (
               <p className="card-text" style={{ margin: '0.5rem 0', color: "#c7385e", fontWeight: 900 }}>
-                {(!isNaN(parseFloat(price)) && isFinite(price)) ? `${price} zł` : price}
+                {formatPrice(price)}
               </p>
             ) : null
           )}
@@ -172,9 +185,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
                 style={{ wordBreak: 'break-word' }}
               />
               <p className=" fs-4" style={{ color: "#c7385e", fontWeight: 900 }}>
-                {product.price ? (
-                  (!isNaN(parseFloat(product.price)) && isFinite(product.price)) ? `${product.price} zł` : product.price
-                ) : ''}
+                {formatPrice(product.price)}
               </p>
             </div>
           </div>
