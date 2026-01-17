@@ -54,7 +54,7 @@ def get_products():
             {
                 "id": p[0],
                 "name": p[1],
-                "price": float(p[2]),
+                "price": p[2], # Return as string or content from DB
                 "description": p[3],
                 "category": p[4],
                 "ceneo_url": p[5],
@@ -93,6 +93,10 @@ def add_product():
         cover_image = images[0].read()
         cover_mimetype = images[0].mimetype or 'image/jpeg'
         images[0].seek(0) # Reset pointer
+
+    # Konwersja pustego stringa na None (dla bazy danych NULL)
+    if not price or price.strip() == "":
+        price = None
 
     try:
         cur.execute(
@@ -262,8 +266,10 @@ def login_user():
 def update_product_price(product_id):
     data = request.json
     new_price = data.get("price")
+    # Allow updating to None or empty string if that's the intent, or just new string
+    # if new_price is None: ... (Previously we required it, now let's allow string updates)
     if new_price is None:
-        return jsonify({"error": "No price provided"}), 400
+         return jsonify({"error": "No price provided"}), 400
     try:
         conn = get_db()
         cur = conn.cursor()

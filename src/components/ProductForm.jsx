@@ -24,17 +24,14 @@ const ProductForm = ({ onAdd }) => {
 
   const handleSubmit = e => {
     e.preventDefault();
-    if (!form.name || !form.price) return alert('Name and price are required');
+    if (!form.name) return alert('Name is required'); // Price is now optional
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => formData.append(key, value));
     photoFiles.forEach(file => formData.append('images', file));
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ':', pair[1]);
-    }
+    // ...
     onAdd(formData);
     setForm({ name: '', price: '', description: '', category: '', ceneo_url: '' });
-    setPhotoFiles([]);
-    e.target.reset();
+    // ...
   };
 
   // const DEPARTMENTS = ["AGD", "Meble", "Kosmetyki", "Kuchnie", "Drobne"];
@@ -52,7 +49,7 @@ const ProductForm = ({ onAdd }) => {
     <form className="admin-form p-4 bg-light rounded shadow-sm" onSubmit={handleSubmit} encType="multipart/form-data">
       <h3 className="mb-4">Dodaj Produkt</h3>
       <input className="form-control mb-3" name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
-      <input className="form-control mb-3" name="price" placeholder="Price" value={form.price} onChange={handleChange} required />
+      <input className="form-control mb-3" name="price" placeholder="Price (opcjonalnie)" value={form.price} onChange={handleChange} />
       <ReactQuill
         theme="snow"
         value={form.description}

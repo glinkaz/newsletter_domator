@@ -64,18 +64,17 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
         </div>
         <div className="card-body d-flex flex-column" style={{ width: '100%', overflow: 'hidden', paddingBottom: '1.5rem' }}>
           <h3 className="card-title" style={{ fontSize: '1.2rem', fontWeight: 700 }}>{product.name}</h3>
+
           {showDeleteButton ? (
             <div style={{ alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
               {editingPrice ? (
                 <>
                   <input
-                    type="number"
+                    type="text"
                     value={price}
-                    min="0"
-                    step="0.01"
                     onClick={e => e.stopPropagation()}
                     onChange={e => setPrice(e.target.value)}
-                    style={{ width: '80px', fontWeight: 700 }}
+                    style={{ width: '120px', fontWeight: 700 }}
                   />
                   <button
                     className="btn btn-success btn-sm"
@@ -102,12 +101,18 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
                   <button
                     className="btn btn-secondary btn-sm"
                     disabled={saving}
-                    onClick={e => { e.stopPropagation(); setEditingPrice(false); setPrice(product.price); }}
+                    onClick={e => { e.stopPropagation(); setEditingPrice(false); setPrice(product.price || ''); }}
                   >Anuluj</button>
                 </>
               ) : (
                 <>
-                  <span className="card-text " style={{ color: "#c7385e", fontWeight: 900, margin: '10px' }}>{price} zł</span>
+                  {price ? (
+                    <span className="card-text " style={{ color: "#c7385e", fontWeight: 900, margin: '10px' }}>
+                      {(!isNaN(parseFloat(price)) && isFinite(price)) ? `${price} zł` : price}
+                    </span>
+                  ) : (
+                    <span className="text-muted" style={{ margin: '10px', fontStyle: 'italic' }}>Brak ceny</span>
+                  )}
                   <button
                     className="btn btn-outline-primary btn-sm"
                     margin='10px'
@@ -118,8 +123,13 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
               {error && <span style={{ color: 'red', fontSize: '0.9em' }}>{error}</span>}
             </div>
           ) : (
-            <p className="card-text" style={{ margin: '0.5rem 0', color: "#c7385e", fontWeight: 900 }}>{price} zł</p>
+            price ? (
+              <p className="card-text" style={{ margin: '0.5rem 0', color: "#c7385e", fontWeight: 900 }}>
+                {(!isNaN(parseFloat(price)) && isFinite(price)) ? `${price} zł` : price}
+              </p>
+            ) : null
           )}
+
           <p className="card-text" style={{ fontSize: '0.98rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {(() => {
               if (!product.description) return '';
@@ -129,6 +139,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
               return text.length > 80 ? text.slice(0, 80) + '...' : text;
             })()}
           </p>
+
           {showDeleteButton && onDelete && (
             <button
               className="btn btn-danger mt-auto align-self-center"
@@ -139,6 +150,7 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
           )}
         </div>
       </div>
+
       {showModal && (
         <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.7)' }} tabIndex="-1" onClick={() => setShowModal(false)}>
           <div className="modal-dialog modal-lg modal-dialog-centered" onClick={e => e.stopPropagation()}>
@@ -153,14 +165,17 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
 
               <ImageGallery product={product} />
 
-
               <h2 className="mt-4">{product.name}</h2>
               <div
                 className="fs-5 mb-3 text-start"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
                 style={{ wordBreak: 'break-word' }}
               />
-              <p className=" fs-4" style={{ color: "#c7385e", fontWeight: 900 }}>{price} zł</p>
+              <p className=" fs-4" style={{ color: "#c7385e", fontWeight: 900 }}>
+                {product.price ? (
+                  (!isNaN(parseFloat(product.price)) && isFinite(product.price)) ? `${product.price} zł` : product.price
+                ) : ''}
+              </p>
             </div>
           </div>
         </div>
