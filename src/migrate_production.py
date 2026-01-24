@@ -52,6 +52,71 @@ def run_migrations():
         else:
             print("   ✅ Kolumna już istnieje.")
 
+
+        # 4. Dodawanie ceneo_url do products (jeśli nie istnieje)
+        print("\n4. Sprawdzanie kolumny ceneo_url w products...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='products' AND column_name='ceneo_url';
+        """)
+        if not cur.fetchone():
+            print("   ➕ Dodawanie kolumny ceneo_url...")
+            cur.execute("""
+                ALTER TABLE products 
+                ADD COLUMN ceneo_url VARCHAR(500);
+            """)
+        else:
+            print("   ✅ Kolumna już istnieje.")
+
+        # 5. Dodawanie visible do products
+        print("\n5. Sprawdzanie kolumny visible w products...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='products' AND column_name='visible';
+        """)
+        if not cur.fetchone():
+            print("   ➕ Dodawanie kolumny visible...")
+            cur.execute("""
+                ALTER TABLE products 
+                ADD COLUMN visible BOOLEAN DEFAULT TRUE;
+            """)
+        else:
+            print("   ✅ Kolumna już istnieje.")
+
+        # 6. Dodawanie ceneo_last_price do products
+        print("\n6. Sprawdzanie kolumny ceneo_last_price w products...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='products' AND column_name='ceneo_last_price';
+        """)
+        if not cur.fetchone():
+            print("   ➕ Dodawanie kolumny ceneo_last_price...")
+            cur.execute("""
+                ALTER TABLE products 
+                ADD COLUMN ceneo_last_price NUMERIC(10, 2);
+            """)
+        else:
+            print("   ✅ Kolumna już istnieje.")
+
+        # 7. Dodawanie ceneo_check_date do products
+        print("\n7. Sprawdzanie kolumny ceneo_check_date w products...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='products' AND column_name='ceneo_check_date';
+        """)
+        if not cur.fetchone():
+            print("   ➕ Dodawanie kolumny ceneo_check_date...")
+            cur.execute("""
+                ALTER TABLE products 
+                ADD COLUMN ceneo_check_date DATE;
+            """)
+        else:
+            print("   ✅ Kolumna już istnieje.")
+
         conn.commit()
         cur.close()
         conn.close()

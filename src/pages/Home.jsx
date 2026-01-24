@@ -33,7 +33,7 @@ const Home = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched products:", data);
-        setProducts(data);
+        setProducts(data.filter(p => p.visible !== false));
       })
       .catch((err) => console.error("Error fetching products:", err));
   }, []);

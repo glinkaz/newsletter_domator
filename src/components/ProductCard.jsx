@@ -27,7 +27,10 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
     <>
       <div
         className="card h-100 shadow-sm position-relative"
-        style={{ cursor: 'pointer' }}
+        style={{
+          cursor: 'pointer',
+          border: (product.visible === false && showDeleteButton) ? '2px solid red' : undefined
+        }}
         onClick={() => setShowModal(true)}
       >
         {product.ceneo_url && product.ceneo_url.trim() !== '' && (
@@ -54,6 +57,20 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
           >
             Porównaj z Ceneo
           </a>
+        )}
+        {product.visible === false && showDeleteButton && (
+          <span
+            className="badge bg-danger"
+            style={{
+              position: 'absolute',
+              top: '55px',
+              right: '15px',
+              zIndex: 20,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            UKRYTY (Taniej na Ceneo)
+          </span>
         )}
         <div className="d-flex align-items-center justify-content-center bg-light" style={{ width: '100%', height: '220px', borderRadius: '12px', overflow: 'hidden' }}>
           {product.content_type && product.content_type.startsWith('video') ? (
@@ -134,6 +151,11 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
                 </>
               )}
               {error && <span style={{ color: 'red', fontSize: '0.9em' }}>{error}</span>}
+              {product.ceneo_last_price && (
+                <div style={{ fontSize: '0.8rem', color: '#dc3545', marginTop: '4px', width: '100%' }}>
+                  Ceneo: {formatPrice(product.ceneo_last_price)}
+                </div>
+              )}
             </div>
           ) : (
             price ? (
@@ -161,8 +183,8 @@ const ProductCard = ({ product, onDelete, showDeleteButton }) => {
               Usuń
             </button>
           )}
-        </div>
-      </div>
+        </div >
+      </div >
 
       {showModal && (
         <div className="modal fade show" style={{ display: 'block', background: 'rgba(0,0,0,0.7)' }} tabIndex="-1" onClick={() => setShowModal(false)}>

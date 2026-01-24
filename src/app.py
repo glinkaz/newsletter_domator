@@ -1,4 +1,9 @@
-
+from apscheduler.schedulers.background import BackgroundScheduler
+import requests
+from bs4 import BeautifulSoup
+import re
+import datetime
+import atexit
 from flask import Flask, request, jsonify, send_file, g
 from flask_cors import CORS
 import psycopg2
@@ -41,6 +46,71 @@ def close_db(exception):
 # --------------------
 # Routes
 # --------------------
+# Routes
+# --------------------
+# --- CENEO PRICE CHECK SCHEDULER ---
+def check_ceneo_prices():
+    print("[CENEO] Daily price check started", flush=True)
+    try:
+        # Create a new connection since this runs in a thread
+        with psycopg2.connect(**DATABASE_CONFIG) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id, price, ceneo_url FROM products WHERE ceneo_url IS NOT NULL AND ceneo_url != ''")
+                products = cur.fetchall()
+                
+                for prod in products:
+                    prod_id, prod_price, ceneo_url = prod
+                    if not prod_price: 
+                        continue
+                        
+                    ceneo_last_price = None
+                    is_visible = True
+                    try:
+                        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+                        r = requests.get(ceneo_url, headers=headers, timeout=10)
+                        if r.status_code == 200:
+                            soup = BeautifulSoup(r.text, 'html.parser')
+                            # Try multiple selectors
+                            price_tag = soup.select_one('[data-price]')
+                            if price_tag:
+                                ceneo_last_price = float(price_tag['data-price'].replace(',', '.'))
+                            else:
+                                # Fallback text search
+                                price_text = soup.find(string=re.compile(r'\d+[\.,]?\d*\s*zł'))
+                                if price_text:
+                                    match = re.search(r'(\d+[\.,]?\d*)', price_text)
+                                    if match:
+                                        ceneo_last_price = float(match.group(1).replace(',', '.'))
+                        
+                        # Comparison Logic
+                        if ceneo_last_price is not None:
+                            # If Ceneo price is LOWER than our price -> Hide
+                            if ceneo_last_price < float(prod_price):
+                                is_visible = False
+                            
+                            print(f"[CENEO] Product {prod_id}: Our={prod_price}, Ceneo={ceneo_last_price}. Visible={is_visible}", flush=True)
+                            
+                            cur.execute(
+                                "UPDATE products SET ceneo_last_price=%s, ceneo_check_date=%s, visible=%s WHERE id=%s",
+                                (ceneo_last_price, datetime.date.today(), is_visible, prod_id)
+                            )
+                    except Exception as e:
+                        print(f"[CENEO] Error processing product {prod_id}: {e}", flush=True)
+                conn.commit()
+    except Exception as e:
+        print(f"[CENEO] Scheduler Error: {e}", flush=True)
+
+# Start scheduler logic
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=check_ceneo_prices, trigger="interval", days=1)
+scheduler.start()
+
+# Check prices immediately on startup (in a separate thread if needed, but here simple call is fine)
+# Note: This might block startup slightly, but ensures user sees results.
+from threading import Thread
+Thread(target=check_ceneo_prices).start()
+
+atexit.register(lambda: scheduler.shutdown())
 
 @app.route("/products", methods=["GET"])
 def get_products():
@@ -48,7 +118,7 @@ def get_products():
     cur = conn.cursor()
     
     try:
-        cur.execute("SELECT id, name, price, description, category, ceneo_url, content_type FROM products;")
+        cur.execute("SELECT id, name, price, description, category, ceneo_url, content_type, visible, ceneo_last_price FROM products;")
         products = cur.fetchall()
         result = [
             {
@@ -58,7 +128,9 @@ def get_products():
                 "description": p[3],
                 "category": p[4],
                 "ceneo_url": p[5],
-                "content_type": p[6] or 'image/jpeg'
+                "content_type": p[6] or 'image/jpeg',
+                "visible": p[7] if p[7] is not None else True,
+                "ceneo_last_price": float(p[8]) if p[8] is not None else None
             }
             for p in products
         ]
