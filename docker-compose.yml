@@ -17,7 +17,7 @@ services:
     working_dir: /app
     volumes:
       - ./src:/app/src
-      # - ./requirements.txt:/app/requirements.txt
+      - ./requirements.txt:/app/requirements.txt
     extra_hosts:
       - "host.docker.internal:host-gateway"
   frontend:
@@ -30,8 +30,8 @@ services:
     depends_on:
       - backend
     working_dir: /app
-    environment:
-      - VITE_API_BASE_URL=https://api.domatormyszyniec.pl
+    # environment:
+    #   - VITE_API_BASE_URL=https://api.domatormyszyniec.pl
 
   db:
     image: postgres:16
