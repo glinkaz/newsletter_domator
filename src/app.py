@@ -49,6 +49,63 @@ def close_db(exception):
 # Routes
 # --------------------
 # --- CENEO PRICE CHECK SCHEDULER ---
+def scrape_single_product(prod_id, prod_price, ceneo_url):
+    """Refactored helper to scrape one product, used by daily job and immediate triggers."""
+    if not prod_price or not ceneo_url:
+        return
+
+    # Log processing attempt
+    print(f"[CENEO] Processing product {prod_id} (Price: {prod_price})", flush=True)
+
+    try:
+        # Create separate DB connection for this thread
+        with psycopg2.connect(**DATABASE_CONFIG) as conn:
+            with conn.cursor() as cur:
+                # Try to convert our price to float for comparison
+                our_price_float = None
+                try:
+                    our_price_float = float(prod_price)
+                except ValueError:
+                    print(f"[CENEO] Product {prod_id} has non-numeric price '{prod_price}'. Skipping comparison logic.", flush=True)
+                    return 
+                
+                ceneo_last_price = None
+                is_visible = True
+                try:
+                    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+                    r = requests.get(ceneo_url, headers=headers, timeout=10)
+                    if r.status_code == 200:
+                        soup = BeautifulSoup(r.text, 'html.parser')
+                        # Try multiple selectors
+                        price_tag = soup.select_one('[data-price]')
+                        if price_tag:
+                            ceneo_last_price = float(price_tag['data-price'].replace(',', '.'))
+                        else:
+                            # Fallback text search
+                            price_text = soup.find(string=re.compile(r'\d+[\.,]?\d*\s*zł'))
+                            if price_text:
+                                match = re.search(r'(\d+[\.,]?\d*)', price_text)
+                                if match:
+                                    ceneo_last_price = float(match.group(1).replace(',', '.'))
+                    
+                    # Comparison Logic
+                    if ceneo_last_price is not None:
+                        # If Ceneo price is LOWER than our price -> Hide
+                        if ceneo_last_price < our_price_float:
+                            is_visible = False
+                        
+                        print(f"[CENEO] Result for {prod_id}: Our={our_price_float}, Ceneo={ceneo_last_price}. Visible={is_visible}", flush=True)
+                        
+                        cur.execute(
+                            "UPDATE products SET ceneo_last_price=%s, ceneo_check_date=%s, visible=%s WHERE id=%s",
+                            (ceneo_last_price, datetime.date.today(), is_visible, prod_id)
+                        )
+                        conn.commit()
+                except Exception as e:
+                    print(f"[CENEO] Error processing product {prod_id}: {e}", flush=True)
+    except Exception as e:
+         print(f"[CENEO] DB Error in single scrape: {e}", flush=True)
+
 def check_ceneo_prices():
     print("[CENEO] Daily price check started", flush=True)
     try:
@@ -60,43 +117,8 @@ def check_ceneo_prices():
                 
                 for prod in products:
                     prod_id, prod_price, ceneo_url = prod
-                    if not prod_price: 
-                        continue
-                        
-                    ceneo_last_price = None
-                    is_visible = True
-                    try:
-                        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
-                        r = requests.get(ceneo_url, headers=headers, timeout=10)
-                        if r.status_code == 200:
-                            soup = BeautifulSoup(r.text, 'html.parser')
-                            # Try multiple selectors
-                            price_tag = soup.select_one('[data-price]')
-                            if price_tag:
-                                ceneo_last_price = float(price_tag['data-price'].replace(',', '.'))
-                            else:
-                                # Fallback text search
-                                price_text = soup.find(string=re.compile(r'\d+[\.,]?\d*\s*zł'))
-                                if price_text:
-                                    match = re.search(r'(\d+[\.,]?\d*)', price_text)
-                                    if match:
-                                        ceneo_last_price = float(match.group(1).replace(',', '.'))
-                        
-                        # Comparison Logic
-                        if ceneo_last_price is not None:
-                            # If Ceneo price is LOWER than our price -> Hide
-                            if ceneo_last_price < float(prod_price):
-                                is_visible = False
-                            
-                            print(f"[CENEO] Product {prod_id}: Our={prod_price}, Ceneo={ceneo_last_price}. Visible={is_visible}", flush=True)
-                            
-                            cur.execute(
-                                "UPDATE products SET ceneo_last_price=%s, ceneo_check_date=%s, visible=%s WHERE id=%s",
-                                (ceneo_last_price, datetime.date.today(), is_visible, prod_id)
-                            )
-                    except Exception as e:
-                        print(f"[CENEO] Error processing product {prod_id}: {e}", flush=True)
-                conn.commit()
+                    scrape_single_product(prod_id, prod_price, ceneo_url)
+                    
     except Exception as e:
         print(f"[CENEO] Scheduler Error: {e}", flush=True)
 
@@ -205,6 +227,10 @@ def add_product():
         
     finally:
         cur.close()
+        
+        # --- TRIGGER IMMEDIATE CENEO CHECK ---
+        if ceneo_url and ceneo_url.strip():
+             Thread(target=scrape_single_product, args=(product_id, price, ceneo_url)).start()
 
 @app.route('/product_image/<int:product_id>', methods=['GET'])
 def get_product_image(product_id):
@@ -352,6 +378,17 @@ def update_product_price(product_id):
     except Exception as e:
         print(f"Błąd podczas aktualizacji ceny: {e}")
         return jsonify({"error": "Wewnętrzny błąd serwera DB"}), 500
+    finally:
+        # Retrieve ceneo_url to check
+        try:
+             conn2 = get_db()
+             cur2 = conn2.cursor()
+             cur2.execute("SELECT ceneo_url FROM products WHERE id=%s", (product_id,))
+             row = cur2.fetchone()
+             if row and row[0]: # ceneo_url exists
+                  Thread(target=scrape_single_product, args=(product_id, new_price, row[0])).start()
+        except:
+             pass
 
 # --------------------
 # Run server
