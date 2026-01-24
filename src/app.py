@@ -64,9 +64,12 @@ def scrape_single_product(prod_id, prod_price, ceneo_url):
                 # Try to convert our price to float for comparison
                 our_price_float = None
                 try:
-                    our_price_float = float(prod_price)
+                    if prod_price:
+                        # Clean price string (handle "1 200,00", "1200.00", etc)
+                        clean_price = str(prod_price).replace(',', '.').replace(' ', '').replace('\xa0', '')
+                        our_price_float = float(clean_price)
                 except ValueError:
-                    print(f"[CENEO] Product {prod_id} has non-numeric price '{prod_price}'. Skipping comparison logic.", flush=True)
+                    print(f"[CENEO] Product {prod_id} has invalid price format '{prod_price}'. Skipping.", flush=True)
                     return 
                 
                 ceneo_last_price = None
@@ -76,17 +79,38 @@ def scrape_single_product(prod_id, prod_price, ceneo_url):
                     r = requests.get(ceneo_url, headers=headers, timeout=10)
                     if r.status_code == 200:
                         soup = BeautifulSoup(r.text, 'html.parser')
-                        # Try multiple selectors
-                        price_tag = soup.select_one('[data-price]')
-                        if price_tag:
-                            ceneo_last_price = float(price_tag['data-price'].replace(',', '.'))
-                        else:
+                        
+                        # Strategy 1: Look for Meta tags (Most reliable, insensitive to UI changes)
+                        price_meta = soup.select_one('meta[itemprop="price"]')
+                        if not price_meta:
+                            price_meta = soup.select_one('meta[property="product:price:amount"]')
+                        
+                        if price_meta and price_meta.get('content'):
+                             try:
+                                 ceneo_last_price = float(price_meta['content'].replace(',', '.'))
+                                 print(f"[CENEO] Found price via META tag: {ceneo_last_price}", flush=True)
+                             except:
+                                 pass
+                        
+                        # Strategy 2: Look for data-price attribute (Visual elements)
+                        if ceneo_last_price is None:
+                            price_tag = soup.select_one('[data-price]')
+                            if price_tag:
+                                ceneo_last_price = float(price_tag['data-price'].replace(',', '.'))
+
+                        # Strategy 3: Fallback text search
+                        if ceneo_last_price is None:
                             # Fallback text search
                             price_text = soup.find(string=re.compile(r'\d+[\.,]?\d*\s*zł'))
                             if price_text:
                                 match = re.search(r'(\d+[\.,]?\d*)', price_text)
                                 if match:
                                     ceneo_last_price = float(match.group(1).replace(',', '.'))
+                        
+                        if ceneo_last_price is None:
+                             print(f"[CENEO] Product {prod_id}: Page loaded but NO PRICE found. Selector failed.", flush=True)
+                    else:
+                         print(f"[CENEO] Product {prod_id}: HTTP Error {r.status_code}", flush=True)
                     
                     # Comparison Logic
                     if ceneo_last_price is not None:
