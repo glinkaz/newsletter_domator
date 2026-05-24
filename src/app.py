@@ -1,9 +1,5 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-import requests
-from bs4 import BeautifulSoup
-import re
-import datetime
-import atexit
+from threading import Thread
+from ceneo_scraper import scrape_single_product, start_ceneo_scheduler
 from flask import Flask, request, jsonify, send_file, g
 from flask_cors import CORS
 import psycopg2
@@ -13,6 +9,7 @@ from flask import Flask, request, jsonify, g
 from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", 
+"http://localhost:20197",
 "http://jola197.mikrus.xyz:20197", 
 "http://jola197.mikrus.xyz:30197", 
 "http://domatormyszyniec.pl",
@@ -49,114 +46,7 @@ def close_db(exception):
 # Routes
 # --------------------
 # --- CENEO PRICE CHECK SCHEDULER ---
-def scrape_single_product(prod_id, prod_price, ceneo_url):
-    """Refactored helper to scrape one product, used by daily job and immediate triggers."""
-    if not prod_price or not ceneo_url:
-        return
-
-    # Log processing attempt
-    print(f"[CENEO] Processing product {prod_id} (Price: {prod_price})", flush=True)
-
-    try:
-        # Create separate DB connection for this thread
-        with psycopg2.connect(**DATABASE_CONFIG) as conn:
-            with conn.cursor() as cur:
-                # Try to convert our price to float for comparison
-                our_price_float = None
-                try:
-                    if prod_price:
-                        # Clean price string (handle "1 200,00", "1200.00", etc)
-                        clean_price = str(prod_price).replace(',', '.').replace(' ', '').replace('\xa0', '')
-                        our_price_float = float(clean_price)
-                except ValueError:
-                    print(f"[CENEO] Product {prod_id} has invalid price format '{prod_price}'. Skipping.", flush=True)
-                    return 
-                
-                ceneo_last_price = None
-                is_visible = True
-                try:
-                    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
-                    r = requests.get(ceneo_url, headers=headers, timeout=10)
-                    if r.status_code == 200:
-                        soup = BeautifulSoup(r.text, 'html.parser')
-                        
-                        # Strategy 1: Look for Meta tags (Most reliable, insensitive to UI changes)
-                        price_meta = soup.select_one('meta[itemprop="price"]')
-                        if not price_meta:
-                            price_meta = soup.select_one('meta[property="product:price:amount"]')
-                        
-                        if price_meta and price_meta.get('content'):
-                             try:
-                                 ceneo_last_price = float(price_meta['content'].replace(',', '.'))
-                                 print(f"[CENEO] Found price via META tag: {ceneo_last_price}", flush=True)
-                             except:
-                                 pass
-                        
-                        # Strategy 2: Look for data-price attribute (Visual elements)
-                        if ceneo_last_price is None:
-                            price_tag = soup.select_one('[data-price]')
-                            if price_tag:
-                                ceneo_last_price = float(price_tag['data-price'].replace(',', '.'))
-
-                        # Strategy 3: Fallback text search
-                        if ceneo_last_price is None:
-                            # Fallback text search
-                            price_text = soup.find(string=re.compile(r'\d+[\.,]?\d*\s*zł'))
-                            if price_text:
-                                match = re.search(r'(\d+[\.,]?\d*)', price_text)
-                                if match:
-                                    ceneo_last_price = float(match.group(1).replace(',', '.'))
-                        
-                        if ceneo_last_price is None:
-                             print(f"[CENEO] Product {prod_id}: Page loaded but NO PRICE found. Selector failed.", flush=True)
-                    else:
-                         print(f"[CENEO] Product {prod_id}: HTTP Error {r.status_code}", flush=True)
-                    
-                    # Comparison Logic
-                    if ceneo_last_price is not None:
-                        # If Ceneo price is LOWER than our price -> Hide
-                        if ceneo_last_price < our_price_float:
-                            is_visible = False
-                        
-                        print(f"[CENEO] Result for {prod_id}: Our={our_price_float}, Ceneo={ceneo_last_price}. Visible={is_visible}", flush=True)
-                        
-                        cur.execute(
-                            "UPDATE products SET ceneo_last_price=%s, ceneo_check_date=%s, visible=%s WHERE id=%s",
-                            (ceneo_last_price, datetime.date.today(), is_visible, prod_id)
-                        )
-                        conn.commit()
-                except Exception as e:
-                    print(f"[CENEO] Error processing product {prod_id}: {e}", flush=True)
-    except Exception as e:
-         print(f"[CENEO] DB Error in single scrape: {e}", flush=True)
-
-def check_ceneo_prices():
-    print("[CENEO] Daily price check started", flush=True)
-    try:
-        # Create a new connection since this runs in a thread
-        with psycopg2.connect(**DATABASE_CONFIG) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT id, price, ceneo_url FROM products WHERE ceneo_url IS NOT NULL AND ceneo_url != ''")
-                products = cur.fetchall()
-                
-                for prod in products:
-                    prod_id, prod_price, ceneo_url = prod
-                    scrape_single_product(prod_id, prod_price, ceneo_url)
-                    
-    except Exception as e:
-        print(f"[CENEO] Scheduler Error: {e}", flush=True)
-
-# Start scheduler logic
-scheduler = BackgroundScheduler()
-scheduler.add_job(func=check_ceneo_prices, trigger="interval", days=1)
-scheduler.start()
-
-# Check prices immediately on startup (in a separate thread if needed, but here simple call is fine)
-# Note: This might block startup slightly, but ensures user sees results.
-from threading import Thread
-Thread(target=check_ceneo_prices).start()
-
-atexit.register(lambda: scheduler.shutdown())
+start_ceneo_scheduler()
 
 @app.route("/products", methods=["GET"])
 def get_products():
@@ -216,6 +106,8 @@ def add_product():
     if not price or price.strip() == "":
         price = None
 
+    product_id = None  # Init to safely use in finally block
+
     try:
         cur.execute(
             "INSERT INTO products (name, price, description, category, image, content_type, ceneo_url) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
@@ -253,7 +145,8 @@ def add_product():
         cur.close()
         
         # --- TRIGGER IMMEDIATE CENEO CHECK ---
-        if ceneo_url and ceneo_url.strip():
+        if product_id and ceneo_url and ceneo_url.strip():
+             print(f"[CENEO] Triggering immediate check for new product {product_id}", flush=True)
              Thread(target=scrape_single_product, args=(product_id, price, ceneo_url)).start()
 
 @app.route('/product_image/<int:product_id>', methods=['GET'])
