@@ -3,6 +3,18 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+ARG INSTALL_CHROMIUM=false
+
+# Chromium jest opcjonalny, żeby domyślny build nie wisiał na ciężkim apt-get.
+RUN if [ "$INSTALL_CHROMIUM" = "true" ]; then \
+        apt-get update && apt-get install -y --no-install-recommends \
+            chromium \
+            chromium-driver \
+        && rm -rf /var/lib/apt/lists/*; \
+    else \
+        echo "Skipping Chromium installation"; \
+    fi
+
 # COPY requirements.txt requirements.txt
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt

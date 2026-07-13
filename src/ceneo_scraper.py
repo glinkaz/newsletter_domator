@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -12,6 +13,12 @@ import psycopg2
 from threading import Thread
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
+
+CENEO_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "Accept-Language": "pl-PL,pl;q=0.9,en;q=0.8",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
 
 DATABASE_CONFIG = {
     "host": os.environ.get("DB_HOST", "0.0.0.0"),
@@ -45,132 +52,152 @@ def scrape_single_product(prod_id, prod_price, ceneo_url):
                 
                 ceneo_last_price = None
                 is_visible = True
-                try:
-                    options = Options()
-                    options.add_argument("--headless=new")
-                    options.add_argument("--disable-gpu")
-                    options.add_argument("--no-sandbox")
-                    options.add_argument("--disable-dev-shm-usage")
-                    options.add_argument("--window-size=1920,1080")
-                    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    options.add_argument("--disable-blink-features=AutomationControlled")
 
-                    chrome_binary = os.environ.get("CHROME_BIN")
-                    if not chrome_binary:
-                        for candidate in ("/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome"):
-                            if os.path.exists(candidate):
-                                chrome_binary = candidate
-                                break
-                    if chrome_binary:
-                        options.binary_location = chrome_binary
-
-                    chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
-                    if not chromedriver_path:
-                        for candidate in ("/usr/bin/chromedriver", "/usr/lib/chromium/chromedriver"):
-                            if os.path.exists(candidate):
-                                chromedriver_path = candidate
-                                break
-                    
-                    driver = None
+                def _parse_price_value(raw_value):
+                    if raw_value is None:
+                        return None
                     try:
-                        # Użyj sterownika i binarki z systemu/Dockera, a lokalnie pobierz je automatycznie.
-                        if chromedriver_path:
-                            driver = webdriver.Chrome(service=ChromeService(executable_path=chromedriver_path), options=options)
-                        else:
-                            try:
-                                driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-                            except Exception:
-                                # Ostateczny fallback dla środowisk z poprawnie skonfigurowanym Selenium Manager.
-                                driver = webdriver.Chrome(options=options)
-                            
-                        driver.set_page_load_timeout(15)
-                        driver.get(ceneo_url)
-                        
-                        # Czekamy chwilę na wykonanie JavaScriptu (np. walidacja Cloudflare)
-                        time.sleep(4)
-                        
-                        html = driver.page_source
-                        soup = BeautifulSoup(html, 'html.parser')
-                    finally:
-                        if driver:
-                            driver.quit()
-                        
-                    # Kontynuacja starym kodem parsującym
-                    if soup:
-                        
-                        # Strategy 0: JSON-LD Schema (Najbardziej uniwersalne, wspiera MediaExpert itp)
-                        ld_scripts = soup.find_all('script', type='application/ld+json')
-                        for script in ld_scripts:
-                            if ceneo_last_price is not None: break
-                            try:
-                                data = json.loads(script.string)
-                                if isinstance(data, dict): data = [data]
-                                for item in data:
-                                    if isinstance(item, dict) and item.get('@type') in ['Product', 'Offer']:
-                                        offers = item.get('offers', {})
-                                        if isinstance(offers, dict):
-                                            if 'lowPrice' in offers:
-                                                ceneo_last_price = float(str(offers.get('lowPrice')).replace(',', '.'))
-                                            elif 'price' in offers:
-                                                ceneo_last_price = float(str(offers.get('price')).replace(',', '.'))
-                                        elif isinstance(offers, list) and len(offers) > 0:
-                                            prices = []
-                                            for o in offers:
-                                                if isinstance(o, dict) and 'price' in o:
-                                                    try: prices.append(float(str(o.get('price')).replace(',', '.')))
-                                                    except ValueError: pass
-                                            if prices:
-                                                ceneo_last_price = min(prices)
-                                        if ceneo_last_price is not None:
-                                            print(f"[CENEO] Found price via JSON-LD: {ceneo_last_price}", flush=True)
-                                            break
-                            except Exception: pass
-                        # Strategy 1: Szukanie po atrybucie `data-price` (dokładnie to o co prosiłeś)
-                        if ceneo_last_price is None:
-                            # Znajduje WSZYSTKIE elementy na stronie posiadające atrybut data-price
-                            data_price_elements = soup.find_all(attrs={"data-price": True})
-                            if data_price_elements:
-                                prices = []
-                                for el in data_price_elements:
-                                    # Pobieramy wyłącznie wartość z 'data-price' i ignorujemy 'data-productminprice'
-                                    dp = el['data-price']
-                                    try:
-                                        prices.append(float(dp.replace(',', '.')))
-                                    except ValueError:
-                                        pass
-                                
-                                if prices:
-                                    ceneo_last_price = min(prices) # Wybiera najniższą ze wszystkich zescrapowanych
-                                    print(f"[CENEO] Znaleziono najniższą cenę po atrybutach data-price: {ceneo_last_price}", flush=True)
+                        cleaned = str(raw_value).replace(',', '.').replace(' ', '').replace('\xa0', '')
+                        return float(cleaned)
+                    except (TypeError, ValueError):
+                        return None
 
-                        # Strategy 2: Meta tags (Jako rezerwa dla innych sklepów niż Ceneo)
-                        if ceneo_last_price is None:
-                            price_meta = soup.select_one('meta[itemprop="price"], meta[property="product:price:amount"]')
-                            if price_meta and price_meta.get('content'):
-                                 try:
-                                     ceneo_last_price = float(price_meta['content'].replace(',', '.'))
-                                     print(f"[CENEO] Found price via META tag: {ceneo_last_price}", flush=True)
-                                 except: pass
+                def _looks_blocked(html_text):
+                    lowered = html_text.lower()
+                    blocked_markers = (
+                        'access denied',
+                        'captcha',
+                        'cloudflare',
+                        'robot',
+                        'blocked',
+                        'verify you are human',
+                    )
+                    return any(marker in lowered for marker in blocked_markers)
 
-                        # Strategy 3: Konkretne klasy CSS (Jako ostateczna rezerwa)
-                        if ceneo_last_price is None:
-                            price_tags = soup.select('.price .value, .product-price')
-                            prices = []
-                            for tag in price_tags:
-                                txt = tag.text.replace(' ', '').replace('\xa0', '').replace(',', '.')
-                                match = re.search(r'(\d+\.?\d*)', txt)
-                                if match:
-                                    try: prices.append(float(match.group(1)))
-                                    except: pass
-                            if prices:
-                                ceneo_last_price = min(prices)
-                                print(f"[CENEO] Found price via specific visual tags: {ceneo_last_price}", flush=True)
+                def _parse_price_candidates(soup_object):
+                    candidate_prices = []
 
-                        
-                        if ceneo_last_price is None:
-                             print(f"[CENEO] Product {prod_id}: Page loaded but NO PRICE found. Selector failed.", flush=True)
+                    ld_scripts = soup_object.find_all('script', type='application/ld+json')
+                    for script in ld_scripts:
+                        script_text = script.string or script.get_text(strip=True)
+                        if not script_text:
+                            continue
+                        try:
+                            data = json.loads(script_text)
+                        except Exception:
+                            continue
+
+                        items = data if isinstance(data, list) else [data]
+                        index = 0
+                        while index < len(items):
+                            item = items[index]
+                            index += 1
+
+                            if not isinstance(item, dict):
+                                continue
+
+                            graph_items = item.get('@graph')
+                            if isinstance(graph_items, list):
+                                items.extend(graph_items)
+
+                            offers = item.get('offers', {})
+                            if isinstance(offers, dict):
+                                for key in ('lowPrice', 'price'):
+                                    parsed = _parse_price_value(offers.get(key))
+                                    if parsed is not None:
+                                        candidate_prices.append(parsed)
+                            elif isinstance(offers, list):
+                                for offer in offers:
+                                    if isinstance(offer, dict):
+                                        parsed = _parse_price_value(offer.get('price'))
+                                        if parsed is not None:
+                                            candidate_prices.append(parsed)
+
+                    for element in soup_object.find_all(attrs={"data-price": True}):
+                        parsed = _parse_price_value(element.get('data-price'))
+                        if parsed is not None:
+                            candidate_prices.append(parsed)
+
+                    for meta_selector in ('meta[itemprop="price"]', 'meta[property="product:price:amount"]'):
+                        meta_tag = soup_object.select_one(meta_selector)
+                        if meta_tag and meta_tag.get('content'):
+                            parsed = _parse_price_value(meta_tag.get('content'))
+                            if parsed is not None:
+                                candidate_prices.append(parsed)
+
+                    for tag in soup_object.select('.price .value, .product-price'):
+                        text_value = tag.get_text(' ', strip=True)
+                        match = re.search(r'(\d+[\d\s\xa0]*[\.,]?\d*)', text_value)
+                        if match:
+                            parsed = _parse_price_value(match.group(1))
+                            if parsed is not None:
+                                candidate_prices.append(parsed)
+
+                    return candidate_prices
+
+                html = None
+                try:
+                    session = requests.Session()
+                    request_response = session.get(ceneo_url, headers=CENEO_HEADERS, timeout=20)
+                    if request_response.ok and not _looks_blocked(request_response.text):
+                        html = request_response.text
                     else:
-                         print(f"[CENEO] Product {prod_id}: HTTP Error {r.status_code}", flush=True)
+                        print(f"[CENEO] Requests fetch failed or blocked for product {prod_id}; falling back to Selenium.", flush=True)
+
+                    if html is None:
+                        options = Options()
+                        options.add_argument("--headless=new")
+                        options.add_argument("--disable-gpu")
+                        options.add_argument("--no-sandbox")
+                        options.add_argument("--disable-dev-shm-usage")
+                        options.add_argument("--window-size=1920,1080")
+                        options.add_argument(f"user-agent={CENEO_HEADERS['User-Agent']}")
+                        options.add_argument("--disable-blink-features=AutomationControlled")
+
+                        chrome_binary = os.environ.get("CHROME_BIN")
+                        if not chrome_binary:
+                            for candidate in ("/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome"):
+                                if os.path.exists(candidate):
+                                    chrome_binary = candidate
+                                    break
+                        if chrome_binary:
+                            options.binary_location = chrome_binary
+
+                        chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
+                        if not chromedriver_path:
+                            for candidate in ("/usr/bin/chromedriver", "/usr/lib/chromium/chromedriver"):
+                                if os.path.exists(candidate):
+                                    chromedriver_path = candidate
+                                    break
+
+                        driver = None
+                        try:
+                            if chromedriver_path:
+                                driver = webdriver.Chrome(service=ChromeService(executable_path=chromedriver_path), options=options)
+                            else:
+                                try:
+                                    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+                                except Exception:
+                                    driver = webdriver.Chrome(options=options)
+
+                            driver.set_page_load_timeout(30)
+                            driver.get(ceneo_url)
+                            time.sleep(6)
+                            html = driver.page_source
+                        finally:
+                            if driver:
+                                driver.quit()
+
+                    if html:
+                        soup = BeautifulSoup(html, 'html.parser')
+                        candidate_prices = _parse_price_candidates(soup)
+                        if candidate_prices:
+                            ceneo_last_price = min(candidate_prices)
+                            print(f"[CENEO] Found price candidates for product {prod_id}: {candidate_prices} -> {ceneo_last_price}", flush=True)
+                        else:
+                            print(f"[CENEO] Product {prod_id}: Page loaded but NO PRICE found.", flush=True)
+                    else:
+                        print(f"[CENEO] Product {prod_id}: Could not load HTML from Ceneo.", flush=True)
                     
                     # Comparison Logic
                     if ceneo_last_price is not None:
